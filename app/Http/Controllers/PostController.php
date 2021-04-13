@@ -16,20 +16,35 @@ class PostController extends Controller
         if($paginaActual===null) {
             $paginaActual=1;
         }
+
         // pagina 1 = saltarme 0 elemento.  1-1 =0 *5 =0
         // pagina 2 = saltarme 5 elementos  2-1 = 1*5 = 5
         // pagina 3 = saltarma 10 elementos  3-1 = 2*5 = 10
 
         //$listado= Post::take(2)->get();
+
+        // ver aqui https://laravel.com/docs/8.x/queries
+
         $listado= Post::orderByDesc('created_at')->skip(($paginaActual-1)*5)->take(5)->get();
 
         $numPaginas=ceil( Post::count() /5) ; // 5 es el tamaño de la pagina
         if($numPaginas>10) {
             $numPaginas=10; // limita que no se muestre mas 10 paginas.
         }
+        if($paginaActual==1) {
+            $prev=null;
+        } else {
+            $prev=$paginaActual-1;
+        }
+        if($paginaActual==$numPaginas) {
+            $next=null;
+        } else {
+            $next=$paginaActual+1;
+        }
 
 
-        return view("listar",['listado'=>$listado,'numPaginas'=>$numPaginas]);
+
+        return view("listar",['listado'=>$listado,'numPaginas'=>$numPaginas,'prev'=>$prev,'next'=>$next]);
     }
     public function InsertarGet() {
         $post=new Post();
