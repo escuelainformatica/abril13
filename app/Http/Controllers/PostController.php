@@ -3,18 +3,17 @@
 namespace App\Http\Controllers;
 
 use App\Models\Post;
-use App\Models\User;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 
 class PostController extends Controller
 {
     //
 
-    public function Listar(Request $req) {
-        $paginaActual=$req->get('pagina');
-        if($paginaActual===null) {
-            $paginaActual=1;
+    public function Listar(Request $req)
+    {
+        $paginaActual = $req->get('pagina');
+        if ($paginaActual === null) {
+            $paginaActual = 1;
         }
 
         // pagina 1 = saltarme 0 elemento.  1-1 =0 *5 =0
@@ -25,33 +24,36 @@ class PostController extends Controller
 
         // ver aqui https://laravel.com/docs/8.x/queries
 
-        $listado= Post::orderByDesc('created_at')->skip(($paginaActual-1)*5)->take(5)->get();
+        $listado = Post::orderByDesc('created_at')->skip(($paginaActual - 1) * 5)->take(5)->get();
 
-        $numPaginas=ceil( Post::count() /5) ; // 5 es el tamaño de la pagina
-        if($numPaginas>10) {
-            $numPaginas=10; // limita que no se muestre mas 10 paginas.
+        $numPaginas = ceil(Post::count() / 5); // 5 es el tamaño de la pagina
+        if ($numPaginas > 10) {
+            $numPaginas = 10; // limita que no se muestre mas 10 paginas.
         }
-        if($paginaActual==1) {
-            $prev=null;
+        if ($paginaActual == 1) { // "1" === 1 no son iguales
+            $prev = null;
         } else {
-            $prev=$paginaActual-1;
+            $prev = $paginaActual - 1;
         }
-        if($paginaActual==$numPaginas) {
-            $next=null;
+        if ($paginaActual == $numPaginas) {
+            $next = null;
         } else {
-            $next=$paginaActual+1;
+            $next = $paginaActual + 1;
         }
 
 
+        return view("listar", ['listado' => $listado, 'numPaginas' => $numPaginas, 'prev' => $prev, 'next' => $next]);
+    }
 
-        return view("listar",['listado'=>$listado,'numPaginas'=>$numPaginas,'prev'=>$prev,'next'=>$next]);
+    public function InsertarGet()
+    {
+        $post = new Post();
+        return view('insertar', ['post' => $post]);
     }
-    public function InsertarGet() {
-        $post=new Post();
-        return view('insertar',['post'=>$post]);
-    }
-    public function InsertarPost(Request $req) {
-        $post=new Post();
+
+    public function InsertarPost(Request $req)
+    {
+        $post = new Post();
         // en config/filesystems.php
         /*
             'disks' => [
@@ -68,17 +70,17 @@ class PostController extends Controller
                     'visibility' => 'public',
                 ],
          */
-        $post->titulo=$req->post('titulo');
-        $post->descripcion=$req->post('descripcion');
-        $imagen=$req->file('imagen');
+        $post->titulo = $req->post('titulo');
+        $post->descripcion = $req->post('descripcion');
+        $imagen = $req->file('imagen');
 
-        $post->imagen=$imagen->getClientOriginalName();
-        $mime=$imagen->getClientMimeType();
-        if($mime==='image/png' || $mime==='image/jpg') {
+        $post->imagen = $imagen->getClientOriginalName();
+        $mime = $imagen->getClientMimeType();
+        if ($mime === 'image/png' || $mime === 'image/jpg') {
             $imagen->storeAs('img', $post->imagen); // public/img/xxxx.xxx
             $post->save();
         }
 
-        return view('insertar',['post'=>$post]);
+        return view('insertar', ['post' => $post]);
     }
 }
